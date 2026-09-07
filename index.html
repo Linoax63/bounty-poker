@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Calculadora Bounty Poker</title>
+<style>
+  :root{
+    --bg:#0f1115; --surface1:#171a21; --surface2:#1e222b; --border:#2a2f3a;
+    --text:#eef0f4; --text-secondary:#a8adb8; --text-muted:#767c8a;
+    --accent:#4f8cff; --success:#3ecf8e; --danger:#ff6b6b; --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:16px; max-width:640px; margin:0 auto; padding-bottom:80px;
+  }
+  h1{font-size:20px;font-weight:600;margin:8px 0 20px;}
+  h2{font-size:16px;font-weight:600;margin:0 0 6px;}
+  .hint{font-size:12px;color:var(--text-muted);margin:0 0 10px;}
+  section{margin-bottom:28px;}
+  label{font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;}
+  input, select{
+    width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:10px 12px; font-size:15px; margin-bottom:8px;
+  }
+  input:focus, select:focus{outline:1px solid var(--accent);}
+  button{
+    background:var(--accent); color:#fff; border:none; border-radius:8px;
+    padding:11px 14px; font-size:14px; font-weight:500; cursor:pointer; width:100%;
+  }
+  button.secondary{background:var(--surface2); color:var(--text-secondary); width:auto; padding:6px 10px; font-size:13px;}
+  button.danger{background:var(--danger);}
+  button.success{background:var(--success); color:#0f1115;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .card{background:var(--surface1);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .card p{margin:0;}
+  .card .name{font-size:14px;font-weight:500;}
+  .card .sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .result-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+  .result-top{display:flex;justify-content:space-between;font-size:14px;font-weight:500;}
+  .formula{font-size:12px;color:var(--text-muted);font-family:ui-monospace,Menlo,monospace;margin-top:6px;}
+  .summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+  .summary .box{background:var(--surface1);border-radius:var(--radius);padding:14px;}
+  .summary .box .label{font-size:12px;color:var(--text-secondary);margin:0 0 4px;}
+  .summary .box .value{font-size:19px;font-weight:600;margin:0;}
+  .placeRow{display:grid;grid-template-columns:32px 1fr 90px;gap:6px;align-items:center;margin-bottom:8px;}
+  .placeRow span{font-size:13px;color:var(--text-secondary);}
+  .empty{font-size:13px;color:var(--text-muted);}
+  .elimForm{display:flex;gap:8px;align-items:center;}
+  .elimForm input{width:70px;flex:none;margin-bottom:0;}
+  .timer-box{background:var(--surface1);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:14px;}
+  .timer-level-label{font-size:13px;color:var(--text-secondary);margin:0 0 4px;}
+  .timer-clock{font-size:52px;font-weight:700;font-family:ui-monospace,Menlo,monospace;margin:4px 0;letter-spacing:1px;}
+  .timer-blinds{font-size:22px;font-weight:600;margin:6px 0;}
+  .timer-ante{font-size:13px;color:var(--text-muted);min-height:16px;}
+  .timer-next{font-size:12px;color:var(--text-muted);margin-top:8px;}
+  .timer-controls{display:flex;gap:8px;margin-top:14px;}
+  .timer-controls button{flex:1;}
+  button.warn{background:var(--danger);}
+  button.play{background:var(--success);color:#0f1115;}
+  .level-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .level-row{display:flex;justify-content:space-between;align-items:center;background:var(--surface1);border-radius:8px;padding:8px 10px;font-size:13px;gap:8px;}
+  .level-row.break{background:#2a2110;}
+  .level-row.active{outline:2px solid var(--accent);}
+  .level-row .idx{color:var(--text-muted);width:20px;flex:none;}
+  .level-row .lvltxt{flex:1;}
+  .addLevelForm{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;}
+  .addLevelForm input{margin-bottom:0;}
+  .elimForm button{flex:1;}
+  .preset-controls{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .preset-controls input{flex:1;min-width:120px;margin-bottom:0;}
+  .preset-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .preset-item{background:var(--surface1);border:1px solid var(--border);border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .preset-item .preset-info{flex:1;}
+  .preset-item .preset-name{font-size:14px;font-weight:500;}
+  .preset-item .preset-desc{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .preset-actions{display:flex;gap:4px;}
+  .preset-actions button{padding:4px 8px;font-size:11px;width:auto;}
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;}
+  .modal-content{background:var(--surface1);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:90%;width:400px;max-height:80vh;overflow-y:auto;}
+  .modal-content textarea{width:100%;height:200px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;margin-bottom:10px;}
+  .modal-buttons{display:flex;gap:8px;margin-top:10px;}
+</style>
+</head>
+<body>
+<h1>🏆 Calculadora de Bounty Poker</h1>
+
+<section>
+  <h2>💾 Presets</h2>
+  <p class="hint">Salve configurações completas para reutilizar em torneios futuros.</p>
+  <div class="preset-controls">
+    <input type="text" id="presetName" placeholder="Nome do preset (ex: Torneio Semanal)"/>
+    <button id="savePreset" class="success">💾 Salvar Preset</button>
+  </div>
+  <div class="preset-controls">
+    <button id="exportPreset" class="secondary">📤 Exportar</button>
+    <button id="importPreset" class="secondary">📥 Importar</button>
+    <button id="clearAllData" class="danger">🗑️ Limpar Tudo</button>
+  </div>
+  <div id="presetList" class="preset-list"></div>
+</section>
+
+<section>
+  <h2>⏱️ Timer de Blinds</h2>
+  <div class="timer-box">
+    <p class="timer-level-label" id="timerLevelLabel">Sem níveis cadastrados</p>
+    <p class="timer-clock" id="timerClock">00:00</p>
+    <p class="timer-blinds" id="timerBlinds">—</p>
+    <p class="timer-ante" id="timerAnte"></p>
+    <p class="timer-next" id="timerNext"></p>
+  </div>
+  <div class="timer-controls">
+    <button class="play" id="btnPlay">▶ Play</button>
+    <button id="btnPause">⏸ Pausar</button>
+    <button class="warn" id="btnReset">⟲ Resetar</button>
+  </div>
+  <div class="timer-controls" style="margin-top:8px;">
+    <button id="btnPrevLevel">◀ Nível anterior</button>
+    <button id="btnNextLevel">Próximo nível ▶</button>
+  </div>
+
+  <h2 style="margin-top:18px;">Estrutura de blinds</h2>
+  <div class="addLevelForm">
+    <div><label>Small</label><input type="number" id="lvlSmall" value="25" min="0"/></div>
+    <div><label>Big</label><input type="number" id="lvlBig" value="50" min="0"/></div>
+    <div><label>Ante</label><input type="number" id="lvlAnte" value="0" min="0"/></div>
+    <div><label>Min</label><input type="number" id="lvlDuration" value="15" min="1"/></div>
+  </div>
+  <button id="addLevel">+ Adicionar nível de blind</button>
+  <div class="row2" style="margin-top:8px;">
+    <div><label>Intervalo (min)</label><input type="number" id="breakDuration" value="10" min="1"/></div>
+    <div style="display:flex;align-items:flex-end;"><button id="addBreak" class="secondary" style="width:100%;">+ Adicionar intervalo</button></div>
+  </div>
+  <div id="levelList" class="level-list"></div>
+</section>
+
+<section>
+  <h2>Configuração</h2>
+  <label>Buy-in — vai pro pote (R$)</label>
+  <input type="number" id="cfgBuyIn" value="10" min="0" step="1"/>
+  <div class="row2">
+    <div><label>Rebuy simples — pote (R$)</label><input type="number" id="cfgRebuy" value="10" min="0" step="1"/></div>
+    <div><label>Rebuy duplo — pote (R$)</label><input type="number" id="cfgRebuyDuplo" value="20" min="0" step="1"/></div>
+  </div>
+  <label>Add-on — pote (R$)</label>
+  <input type="number" id="cfgAddOn" value="10" min="0" step="1"/>
+  <label>Bounty por cabeça (R$)</label>
+  <input type="number" id="cfgBounty" value="5" min="0" step="1"/>
+  <p class="hint">Pago direto por quem é eliminado a quem eliminou — não entra no pote.</p>
+</section>
+
+<section>
+  <h2>Participantes</h2>
+  <input type="text" id="pName" placeholder="Nome do participante"/>
+  <div class="row3">
+    <div><label>Rebuys simples</label><input type="number" id="pRebuySimples" value="0" min="0"/></div>
+    <div><label>Rebuys duplos</label><input type="number" id="pRebuyDuplos" value="0" min="0"/></div>
+    <div><label>Add-ons</label><input type="number" id="pAddOns" value="0" min="0"/></div>
+  </div>
+  <button id="addPart">+ Adicionar participante</button>
+  <div id="partList" style="margin-top:10px;"></div>
+</section>
+
+<section>
+  <h2>Premiação (pote)</h2>
+  <p class="hint">Só o valor do pote por posição, sem bounty.</p>
+  <label>Lugares pagos</label>
+  <input type="number" id="cfgPlaces" value="3" min="0" style="width:100px;"/>
+  <div id="placesList" style="margin-top:8px;"></div>
+</section>
+
+<section>
+  <h2>Eliminações</h2>
+  <p class="hint">Quem foi eliminado paga o bounty pra quem eliminou.</p>
+  <select id="elimKiller"></select>
+  <select id="elimVictim"></select>
+  <div class="elimForm">
+    <div><label style="margin-bottom:2px;">Vezes</label><input type="number" id="elimQty" value="1" min="1"/></div>
+    <button id="addElim">+ Registrar</button>
+  </div>
+  <div id="elimList" style="margin-top:10px;"></div>
+</section>
+
+<section>
+  <h2>Resultado</h2>
+  <div id="resultCards"></div>
+  <div class="summary">
+    <div class="box"><p class="label">Total do pote</p><p class="value" id="sumCollected">R$ 0</p></div>
+    <div class="box"><p class="label">Premiação distribuída</p><p class="value" id="sumDistributed">R$ 0</p></div>
+  </div>
+  <p class="hint" id="sumNote" style="margin-top:8px;"></p>
+</section>
+
+<section>
+  <h2>Bounties a pagar</h2>
+  <p class="hint">Direto de quem foi eliminado para quem eliminou.</p>
+  <div id="bountyList"></div>
+</section>
+
+<section>
+  <h2>Acerto do pote</h2>
+  <p class="hint">Quem deve receber e quem deve completar o pote da premiação.</p>
+  <div id="settleList"></div>
+</section>
+
+<script>
+let levels = [];
+let currentLevelIndex = 0;
+let remainingSeconds = 0;
+let timerRunning = false;
+let timerHandle = null;
+let levelNextId = 1;
+let participants = [];
+let places = [];
+let eliminations = [];
+let nextId = 1;
+let presets = [];
+let currentPresetName = '';
+
+function formatTime(s){
+  s = Math.max(0, Math.round(s));
+  const m = Math.floor(s/60); const sec = s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+function renderLevels(){
+  document.getElementById('levelList').innerHTML = levels.map((lv,i)=>{
+    const cls = 'level-row'+(lv.type==='break'?' break':'')+(i===currentLevelIndex?' active':'');
+    const txt = lv.type==='break'
+      ? 'Intervalo — '+lv.duration+' min'
+      : 'SB '+lv.small+' / BB '+lv.big+(lv.ante>0?' / Ante '+lv.ante:'')+' — '+lv.duration+' min';
+    return '<div class="'+cls+'"><span class="idx">'+(i+1)+'</span><span class="lvltxt">'+txt+'</span><button class="secondary" data-del-level="'+lv.id+'">Remover</button></div>';
+  }).join('') || '<p class="empty">Nenhum nível cadastrado ainda.</p>';
+}
+
+function renderTimerDisplay(){
+  const lv = levels[currentLevelIndex];
+  if(!lv){
+    document.getElementById('timerLevelLabel').textContent = 'Sem níveis cadastrados';
+    document.getElementById('timerClock').textContent = '00:00';
+    document.getElementById('timerBlinds').textContent = '—';
+    document.getElementById('timerAnte').textContent = '';
+    document.getElementById('timerNext').textContent = '';
+    return;
+  }
+  document.getElementById('timerLevelLabel').textContent = (lv.type==='break' ? 'Intervalo' : 'Nível '+(currentLevelIndex+1));
+  document.getElementById('timerClock').textContent = formatTime(remainingSeconds);
+  document.getElementById('timerBlinds').textContent = lv.type==='break' ? 'Pausa' : (lv.small+' / '+lv.big);
+  document.getElementById('timerAnte').textContent = (lv.type!=='break' && lv.ante>0) ? 'Ante '+lv.ante : '';
+  const next = levels[currentLevelIndex+1];
+  document.getElementById('timerNext').textContent = next ? ('Próximo: '+(next.type==='break' ? 'Intervalo' : ('SB '+next.small+' / BB '+next.big))) : 'Último nível';
+}
+
+function loadLevel(i, resetSeconds){
+  if(levels.length===0){ currentLevelIndex=0; remainingSeconds=0; renderLevels(); renderTimerDisplay(); return; }
+  if(i<0) i=0;
+  if(i>=levels.length) i=levels.length-1;
+  currentLevelIndex = i;
+  const lv = levels[currentLevelIndex];
+  if(lv && resetSeconds) remainingSeconds = lv.duration*60;
+  renderLevels();
+  renderTimerDisplay();
+  saveTimerState();
+}
+
+function tick(){
+  if(remainingSeconds<=0){
+    if(currentLevelIndex < levels.length-1){
+      playBeep();
+      loadLevel(currentLevelIndex+1, true);
+    } else {
+      pauseTimer();
+      playBeep();
+    }
+    return;
+  }
+  remainingSeconds -= 1;
+  renderTimerDisplay();
+}
+
+function startTimer(){
+  if(levels.length===0) return;
+  if(remainingSeconds<=0) remainingSeconds = levels[currentLevelIndex].duration*60;
+  if(timerRunning) return;
+  timerRunning = true;
+  timerHandle = setInterval(tick, 1000);
+}
+function pauseTimer(){
+  timerRunning = false;
+  if(timerHandle) clearInterval(timerHandle);
+  timerHandle = null;
+  saveTimerState();
+}
+function resetTimer(){
+  pauseTimer();
+  loadLevel(0, true);
+}
+function playBeep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.2, ctx.currentTime);
+    o.start();
+    o.stop(ctx.currentTime+0.3);
+  }catch(e){}
+}
+
+function saveTimerState(){
+  try{ localStorage.setItem('bountyTimerState', JSON.stringify({levels,currentLevelIndex,remainingSeconds,levelNextId})); }catch(e){}
+}
+
+function cfg(){
+  return {
+    buyIn: parseFloat(document.getElementById('cfgBuyIn').value)||0,
+    bounty: parseFloat(document.getElementById('cfgBounty').value)||0,
+    rebuy: parseFloat(document.getElementById('cfgRebuy').value)||0,
+    rebuyDuplo: parseFloat(document.getElementById('cfgRebuyDuplo').value)||0,
+    addOn: parseFloat(document.getElementById('cfgAddOn').value)||0,
+    places: parseInt(document.getElementById('cfgPlaces').value)||0
+  };
+}
+function fmt(n){ return 'R$ ' + (Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtPlain(n){ return (Math.round(n*100)/100).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+
+function potPaid(p){
+  const c = cfg();
+  return c.buyIn + p.rebuySimples*c.rebuy + p.rebuyDuplos*c.rebuyDuplo + p.addOns*c.addOn;
+}
+function bountyWon(id){
+  const c = cfg();
+  return eliminations.filter(e=>e.killerId===id).reduce((s,e)=>s+e.qty,0)*c.bounty;
+}
+function bountyPaidByVictim(id){
+  const c = cfg();
+  return eliminations.filter(e=>e.victimId===id).reduce((s,e)=>s+e.qty,0)*c.bounty;
+}
+function killsOf(id){
+  return eliminations.filter(e=>e.killerId===id).reduce((s,e)=>s+e.qty,0);
+}
+function prizeOf(id){
+  const pl = places.find(pl=>pl.participantId===id);
+  return pl ? (pl.value||0) : 0;
+}
+
+function syncPlaces(){
+  const n = Math.max(0, parseInt(document.getElementById('cfgPlaces').value)||0);
+  while(places.length < n) places.push({position: places.length+1, value:0, participantId:null});
+  places = places.slice(0,n);
+  places.forEach((p,i)=>p.position=i+1);
+}
+
+function renderParticipantOptions(sel){
+  const el = document.getElementById(sel);
+  const current = el.value;
+  el.innerHTML = '<option value="">Selecione</option>'+participants.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
+  if(participants.find(p=>String(p.id)===current)) el.value = current;
+}
+
+function computeSettlement(nets){
+  const creditors = nets.filter(n=>n.amount>0.005).map(n=>({...n})).sort((a,b)=>b.amount-a.amount);
+  const debtors = nets.filter(n=>n.amount<-0.005).map(n=>({...n,amount:-n.amount})).sort((a,b)=>b.amount-a.amount);
+  const tx = [];
+  let ci=0, di=0;
+  while(ci<creditors.length && di<debtors.length){
+    const c = creditors[ci], d = debtors[di];
+    const amt = Math.min(c.amount, d.amount);
+    if(amt>0.005) tx.push({from:d.name, to:c.name, amount:amt});
+    c.amount -= amt; d.amount -= amt;
+    if(c.amount<=0.005) ci++;
+    if(d.amount<=0.005) di++;
+  }
+  return tx;
+}
+
+function renderAll(){
+  syncPlaces();
+  const c = cfg();
+
+  document.getElementById('partList').innerHTML = participants.map(p=>{
+    return '<div class="card"><div><p class="name">'+p.name+'</p><p class="sub">Pote: '+fmt(potPaid(p))+'</p></div>'
+      +'<button class="secondary" data-del-part="'+p.id+'">Remover</button></div>';
+  }).join('') || '<p class="empty">Nenhum participante ainda.</p>';
+
+  document.getElementById('placesList').innerHTML = places.map((pl,i)=>{
+    const opts = '<option value="">Selecione</option>'+participants.map(p=>'<option value="'+p.id+'"'+(pl.participantId===p.id?' selected':'')+'>'+p.name+'</option>').join('');
+    return '<div class="placeRow"><span>'+pl.position+'º</span>'
+      +'<select data-place-part="'+i+'">'+opts+'</select>'
+      +'<input type="number" data-place-val="'+i+'" value="'+pl.value+'" min="0" placeholder="Valor"/></div>';
+  }).join('');
+
+  renderParticipantOptions('elimKiller');
+  renderParticipantOptions('elimVictim');
+
+  document.getElementById('elimList').innerHTML = eliminations.map(e=>{
+    const k = participants.find(p=>p.id===e.killerId);
+    const v = participants.find(p=>p.id===e.victimId);
+    if(!k||!v) return '';
+    return '<div class="card"><span style="font-size:13px;">'+k.name+' eliminou '+v.name+' ('+e.qty+'x)</span>'
+      +'<button class="secondary" data-del-elim="'+e.id+'">Remover</button></div>';
+  }).join('') || '<p class="empty">Nenhuma eliminação registrada.</p>';
+
+  let totalPot = 0, totalPrize = 0;
+  const potNets = [];
+  document.getElementById('resultCards').innerHTML = participants.map(p=>{
+    const paid = potPaid(p);
+    const kills = killsOf(p.id);
+    const won = bountyWon(p.id);
+    const owed = bountyPaidByVictim(p.id);
+    const prize = prizeOf(p.id);
+    const net = prize - paid + won - owed;
+    potNets.push({name:p.name, amount: prize-paid});
+    totalPot += paid; totalPrize += prize;
+    const netColor = net>=0 ? 'var(--success)' : 'var(--danger)';
+    const formula = fmtPlain(prize)+' − '+fmtPlain(paid)+(won>0?' + '+fmtPlain(won):'')+(owed>0?' − '+fmtPlain(owed):'')+' = '+fmt(net);
+    return '<div class="result-card"><div class="result-top"><span>'+p.name+'</span>'
+      +'<span style="color:'+netColor+';">'+fmt(net)+'</span></div>'
+      +'<p class="sub">Pote pago '+fmt(paid)+' · Prêmio '+fmt(prize)+' · Bounty recebido '+fmt(won)+' ('+kills+' abates) · Bounty pago '+fmt(owed)+'</p>'
+      +'<p class="formula">'+formula+'</p></div>';
+  }).join('') || '<p class="empty">Adicione participantes para ver o resultado.</p>';
+
+  document.getElementById('sumCollected').textContent = fmt(totalPot);
+  document.getElementById('sumDistributed').textContent = fmt(totalPrize);
+  const diff = totalPot-totalPrize;
+  document.getElementById('sumNote').textContent = Math.abs(diff)<0.01 ? 'O pote bate certinho com a premiação.' : (diff>0 ? 'Sobram '+fmt(diff)+' do pote não distribuídos.' : 'Faltam '+fmt(-diff)+' para cobrir a premiação.');
+
+  const bountyPairs = {};
+  eliminations.forEach(e=>{
+    const key = e.victimId+'-'+e.killerId;
+    if(!bountyPairs[key]) bountyPairs[key] = {victimId:e.victimId, killerId:e.killerId, qty:0};
+    bountyPairs[key].qty += e.qty;
+  });
+  document.getElementById('bountyList').innerHTML = Object.values(bountyPairs).map(bp=>{
+    const v = participants.find(p=>p.id===bp.victimId);
+    const k = participants.find(p=>p.id===bp.killerId);
+    if(!v||!k) return '';
+    return '<div class="card"><span style="font-size:13px;">→ '+v.name+' paga '+k.name+' ('+bp.qty+'x)</span>'
+      +'<span style="font-weight:500;">'+fmt(bp.qty*c.bounty)+'</span></div>';
+  }).join('') || '<p class="empty">Nenhum bounty a pagar ainda.</p>';
+
+  const tx = computeSettlement(potNets);
+  document.getElementById('settleList').innerHTML = tx.map(t=>{
+    return '<div class="card"><span style="font-size:13px;">→ '+t.from+' paga '+t.to+'</span>'
+      +'<span style="font-weight:500;">'+fmt(t.amount)+'</span></div>';
+  }).join('') || '<p class="empty">Nada a acertar ainda.</p>';
+
+  saveCalcState();
+  renderPresets();
+}
+
+function getCurrentState(){
+  return {
+    levels,
+    currentLevelIndex,
+    remainingSeconds,
+    levelNextId,
+    participants,
+    places,
+    eliminations,
+    nextId,
+    cfg: {
+      buyIn: document.getElementById('cfgBuyIn').value,
+      bounty: document.getElementById('cfgBounty').value,
+      rebuy: document.getElementById('cfgRebuy').value,
+      rebuyDuplo: document.getElementById('cfgRebuyDuplo').value,
+      addOn: document.getElementById('cfgAddOn').value,
+      places: document.getElementById('cfgPlaces').value
+    }
+  };
+}
+
+function loadState(state){
+  if(!state) return;
+  levels = state.levels || [];
+  currentLevelIndex = state.currentLevelIndex || 0;
+  remainingSeconds = state.remainingSeconds || 0;
+  levelNextId = state.levelNextId || 1;
+  participants = state.participants || [];
+  places = state.places || [];
+  eliminations = state.eliminations || [];
+  nextId = state.nextId || 1;
+  
+  if(state.cfg){
+    document.getElementById('cfgBuyIn').value = state.cfg.buyIn;
+    document.getElementById('cfgBounty').value = state.cfg.bounty;
+    document.getElementById('cfgRebuy').value = state.cfg.rebuy;
+    document.getElementById('cfgRebuyDuplo').value = state.cfg.rebuyDuplo;
+    document.getElementById('cfgAddOn').value = state.cfg.addOn;
+    document.getElementById('cfgPlaces').value = state.cfg.places;
+  }
+  
+  renderLevels();
+  renderTimerDisplay();
+  renderAll();
+  saveTimerState();
+  saveCalcState();
+}
+
+function savePresetsToStorage(){
+  try{ localStorage.setItem('bountyPresets', JSON.stringify(presets)); }catch(e){}
+}
+
+function loadPresetsFromStorage(){
+  try{
+    const raw = localStorage.getItem('bountyPresets');
+    if(raw) presets = JSON.parse(raw);
+  }catch(e){ presets = []; }
+}
+
+function renderPresets(){
+  document.getElementById('presetList').innerHTML = presets.map((preset, idx)=>{
+    const levelCount = (preset.state.levels || []).length;
+    const partCount = (preset.state.participants || []).length;
+    return '<div class="preset-item">'
+      + '<div class="preset-info">'
+      + '<div class="preset-name">'+preset.name+'</div>'
+      + '<div class="preset-desc">'+levelCount+' níveis · '+partCount+' participantes · '+new Date(preset.date).toLocaleString('pt-BR')+'</div>'
+      + '</div>'
+      + '<div class="preset-actions">'
+      + '<button class="secondary" data-load-preset="'+idx+'">Carregar</button>'
+      + '<button class="danger" data-del-preset="'+idx+'">Excluir</button>'
+      + '</div>'
+      + '</div>';
+  }).join('') || '<p class="empty">Nenhum preset salvo ainda.</p>';
+}
+
+function saveCalcState(){
+  try{ 
+    localStorage.setItem('bountyCalcState', JSON.stringify({
+      participants,
+      places,
+      eliminations,
+      nextId,
+      cfg: {
+        buyIn: document.getElementById('cfgBuyIn').value,
+        bounty: document.getElementById('cfgBounty').value,
+        rebuy: document.getElementById('cfgRebuy').value,
+        rebuyDuplo: document.getElementById('cfgRebuyDuplo').value,
+        addOn: document.getElementById('cfgAddOn').value,
+        places: document.getElementById('cfgPlaces').value
+      }
+    })); 
+  }catch(e){}
+}
+
+// Event Listeners
+document.getElementById('addLevel').addEventListener('click', ()=>{
+  levels.push({id:levelNextId++, type:'blind',
+    small: parseFloat(document.getElementById('lvlSmall').value)||0,
+    big: parseFloat(document.getElementById('lvlBig').value)||0,
+    ante: parseFloat(document.getElementById('lvlAnte').value)||0,
+    duration: parseFloat(document.getElementById('lvlDuration').value)||15});
+  if(levels.length===1) loadLevel(0,true); else { renderLevels(); saveTimerState(); }
+});
+
+document.getElementById('addBreak').addEventListener('click', ()=>{
+  levels.push({id:levelNextId++, type:'break', duration: parseFloat(document.getElementById('breakDuration').value)||10});
+  if(levels.length===1) loadLevel(0,true); else { renderLevels(); saveTimerState(); }
+});
+
+document.getElementById('btnPlay').addEventListener('click', startTimer);
+document.getElementById('btnPause').addEventListener('click', pauseTimer);
+document.getElementById('btnReset').addEventListener('click', resetTimer);
+document.getElementById('btnPrevLevel').addEventListener('click', ()=>{ pauseTimer(); loadLevel(currentLevelIndex-1, true); });
+document.getElementById('btnNextLevel').addEventListener('click', ()=>{ pauseTimer(); loadLevel(currentLevelIndex+1, true); });
+
+document.body.addEventListener('click', (ev)=>{
+  const delLevel = ev.target.closest('[data-del-level]');
+  if(delLevel){
+    const id = parseInt(delLevel.getAttribute('data-del-level'));
+    levels = levels.filter(l=>l.id!==id);
+    if(currentLevelIndex>=levels.length) currentLevelIndex = Math.max(0,levels.length-1);
+    renderLevels(); renderTimerDisplay(); saveTimerState();
+  }
+  
+  const delPart = ev.target.closest('[data-del-part]');
+  if(delPart){ 
+    const id=parseInt(delPart.getAttribute('data-del-part')); 
+    participants=participants.filter(p=>p.id!==id);
